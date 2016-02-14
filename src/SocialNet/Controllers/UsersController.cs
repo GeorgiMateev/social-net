@@ -5,6 +5,9 @@ using Microsoft.AspNet.Http;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Data.Entity;
 using SocialNet.Models;
+using SocialNet.ViewModels.Users;
+using System.Security.Claims;
+using Microsoft.AspNet.Identity;
 
 namespace SocialNet.Controllers
 {
@@ -13,17 +16,19 @@ namespace SocialNet.Controllers
     public class UsersController : Controller
     {
         private ApplicationDbContext context;
+        private UserManager<ApplicationUser> userManager;
 
-        public UsersController(ApplicationDbContext context)
+        public UsersController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             this.context = context;
+            this.userManager = userManager;
         }
 
         // GET: api/Users
         [HttpGet]
-        public IEnumerable<ApplicationUser> GetApplicationUser()
+        public IEnumerable<UserViewModel> GetApplicationUsers()
         {
-            return context.ApplicationUsers;
+            return context.ApplicationUsers.Select(u => new UserViewModel(u.UserName, u.Description));
         }
 
         // GET: api/Users/5
@@ -35,11 +40,13 @@ namespace SocialNet.Controllers
                 return HttpBadRequest(ModelState);
             }
 
-            ApplicationUser applicationUser = await context.ApplicationUsers.SingleAsync(m => m.Id == id);
+            UserViewModel applicationUser = await context.ApplicationUsers.Where(m => m.Id == id)
+                                                .Select(u => new UserViewModel(u.UserName, u.Description))
+                                                .SingleOrDefaultAsync();
 
             if (applicationUser == null)
             {
-                return HttpNotFound();
+                return this.HttpNotFound();
             }
 
             return Ok(applicationUser);
@@ -47,101 +54,30 @@ namespace SocialNet.Controllers
 
         // PUT: api/Users/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutApplicationUser([FromRoute] string id, [FromBody] ApplicationUser applicationUser)
+        public async Task<IActionResult> PutApplicationUser([FromRoute] string id, [FromBody] UserViewModel applicationUser)
         {
             if (!ModelState.IsValid)
             {
                 return HttpBadRequest(ModelState);
             }
 
-            if (id != applicationUser.Id)
+            if (HttpContext.User.GetUserId() != id)
             {
-                return HttpBadRequest();
+                return this.HttpUnauthorized();
             }
 
-            context.Entry(applicationUser).State = EntityState.Modified;
+            var user = await this.userManager.FindByIdAsync(id);
 
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ApplicationUserExists(id))
-                {
-                    return HttpNotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return new HttpStatusCodeResult(StatusCodes.Status204NoContent);
-        }
-
-        // POST: api/Users
-        [HttpPost]
-        public async Task<IActionResult> PostApplicationUser([FromBody] ApplicationUser applicationUser)
-        {
-            if (!ModelState.IsValid)
-            {
-                return HttpBadRequest(ModelState);
-            }
-
-            context.ApplicationUsers.Add(applicationUser);
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                if (ApplicationUserExists(applicationUser.Id))
-                {
-                    return new HttpStatusCodeResult(StatusCodes.Status409Conflict);
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return CreatedAtRoute("GetApplicationUser", new { id = applicationUser.Id }, applicationUser);
-        }
-
-        // DELETE: api/Users/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteApplicationUser([FromRoute] string id)
-        {
-            if (!ModelState.IsValid)
-            {
-                return HttpBadRequest(ModelState);
-            }
-
-            ApplicationUser applicationUser = await context.ApplicationUsers.SingleAsync(m => m.Id == id);
-            if (applicationUser == null)
+            if (user == null)
             {
                 return HttpNotFound();
             }
 
-            context.ApplicationUsers.Remove(applicationUser);
+            context.Entry(user).State = EntityState.Modified;
+
             await context.SaveChangesAsync();
 
-            return Ok(applicationUser);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                context.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-
-        private bool ApplicationUserExists(string id)
-        {
-            return context.ApplicationUsers.Count(e => e.Id == id) > 0;
+            return new HttpStatusCodeResult(StatusCodes.Status204NoContent);
         }
     }
 }
