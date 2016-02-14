@@ -89,7 +89,7 @@ namespace SocialNet.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, Description = model.Description };
                 var result = await userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {

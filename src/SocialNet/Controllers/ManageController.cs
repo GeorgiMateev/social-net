@@ -45,8 +45,8 @@ namespace SocialNet.Controllers
             var model = new IndexViewModel
             {
                 HasPassword = await userManager.HasPasswordAsync(user),
-                Logins = await userManager.GetLoginsAsync(user),
-                BrowserRemembered = await signInManager.IsTwoFactorClientRememberedAsync(user)
+                BrowserRemembered = await signInManager.IsTwoFactorClientRememberedAsync(user),
+                Description = user.Description
             };
             return View(model);
         }
