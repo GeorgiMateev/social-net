@@ -14,6 +14,10 @@ namespace SocialNet.ViewModels.Account
         public string Email { get; set; }
 
         [Required]
+        [Display(Name = "Username")]
+        public string Username { get; set; }
+
+        [Required]
         [Display(Name = "Description")]
         public string Description { get; set; }
 

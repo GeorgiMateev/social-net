@@ -8,7 +8,6 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using SocialNet.Models;
-using SocialNet.Services;
 using SocialNet.ViewModels.Manage;
 
 namespace SocialNet.Controllers
@@ -44,6 +43,7 @@ namespace SocialNet.Controllers
             var user = await GetCurrentUserAsync();
             var model = new IndexViewModel
             {
+                Username = user.UserName,
                 HasPassword = await userManager.HasPasswordAsync(user),
                 BrowserRemembered = await signInManager.IsTwoFactorClientRememberedAsync(user),
                 Description = user.Description

@@ -5,7 +5,6 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Mvc;
 using Microsoft.Extensions.Logging;
 using SocialNet.Models;
-using SocialNet.Services;
 using SocialNet.ViewModels.Account;
 
 namespace SocialNet.Controllers
@@ -49,7 +48,7 @@ namespace SocialNet.Controllers
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     logger.LogInformation(1, "User logged in.");
@@ -89,7 +88,7 @@ namespace SocialNet.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new ApplicationUser { UserName = model.Email, Email = model.Email, Description = model.Description };
+                var user = new ApplicationUser { UserName = model.Username, Email = model.Email, Description = model.Description };
                 var result = await userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
