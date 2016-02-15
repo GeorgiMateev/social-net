@@ -27,9 +27,12 @@ namespace SocialNet.Controllers
 
         // GET: api/Users
         [HttpGet]
-        public IEnumerable<UserViewModel> GetApplicationUsers()
+        public IEnumerable<UserViewModel> GetApplicationUsers([FromQuery] int skip = 0, [FromQuery] int take = 100)
         {
-            return context.ApplicationUsers.Select(u => new UserViewModel(u.Id, u.UserName, u.Description));
+            return context.ApplicationUsers
+                .Skip(skip)
+                .Take(take)
+                .Select(u => new UserViewModel(u.Id, u.UserName, u.Description));
         }
 
         // GET: api/Users/5
@@ -85,7 +88,7 @@ namespace SocialNet.Controllers
         // GET: api/users/5/subscriptions
         [Authorize]
         [HttpGet("{id}/subscriptions")]
-        public async Task<IActionResult> Subscriptions([FromRoute] string id)
+        public async Task<IActionResult> Subscriptions([FromRoute] string id, [FromQuery] int skip = 0, [FromQuery] int take = 100)
         {
             var subscriber = await this.context.ApplicationUsers
                 .Include(u => u.Publishers)
@@ -99,7 +102,9 @@ namespace SocialNet.Controllers
             return this.Ok(subscriber.Publishers.Select(s =>
             {
                 return new UserViewModel(this.context.ApplicationUsers.FirstOrDefault(u => u.Id == s.PublisherId));
-            }));
+            })
+            .Skip(skip)
+            .Take(take));
         }
 
         // POST: api/Users/subscribe

@@ -22,10 +22,10 @@ namespace SocialNet.Controllers
             this.context = context;
         }
 
-        // GET: api/Messages/user/5
+        // GET: api/Messages/for/5
         [Authorize]
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetMessage([FromRoute] string id)
+        [HttpGet("for/{userId}")]
+        public async Task<IActionResult> GetMessage([FromRoute] string id, [FromQuery] int skip = 0, [FromQuery] int take = 100)
         {
             var subscriber = await this.context.ApplicationUsers
                 .Include(u => u.Publishers)
@@ -46,6 +46,8 @@ namespace SocialNet.Controllers
             return this.Ok(await context.Messages
                                 .Include(m => m.Author)
                                 .Where(m => publishersIds.Contains(m.Author.Id))
+                                .Skip(skip)
+                                .Take(take)
                                 .ToListAsync());
         }
 
