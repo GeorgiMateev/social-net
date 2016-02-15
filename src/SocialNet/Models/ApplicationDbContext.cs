@@ -34,5 +34,6 @@ namespace SocialNet.Models
                 .HasForeignKey(s => s.SubscriberId);
         }
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<Message> Messages { get; set; }
     }
 }

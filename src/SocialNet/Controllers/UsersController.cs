@@ -75,7 +75,7 @@ namespace SocialNet.Controllers
                 return HttpNotFound();
             }
 
-            context.Entry(user).State = EntityState.Modified;
+            user.Description = userViewModel.Description;
 
             await context.SaveChangesAsync();
 
